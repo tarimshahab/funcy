@@ -1,0 +1,2 @@
+# funcy
+Graphing Game
