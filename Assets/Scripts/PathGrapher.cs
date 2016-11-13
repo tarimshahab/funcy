@@ -4,10 +4,8 @@ using NCalc;
 
 public class PathGrapher   {
     public float positionX;
-    float deltaX;
-    Expression expression;
-    float yTranslation;
-
+    float deltaX, yTranslation;
+    FunctionEvaluator equation;
     List<Vector3> points;
     public List<Vector3> Points {
         get {
@@ -19,42 +17,22 @@ public class PathGrapher   {
         positionX = 0f;
         yTranslation = 0;
         deltaX = _deltaX;
+        points = new List<Vector3>();
     }
 
     public PathGrapher(string _expression, float _deltaX = 0.05f) : this(_deltaX) {
         SetFunction(_expression);
     }
 
-
-    /* This constructor pre-calculates a bunch of point */
-    public PathGrapher(float start, float end, float delta) {
-        deltaX = delta;
-        int pointsCount = (int)(Mathf.Abs(end - start) / deltaX);
-        Debug.Log("POINTS COUNT: " + pointsCount);
-        points = new List<Vector3>(pointsCount);
-
-        float x = 0f;
-        for (int i = 0; i < pointsCount; i++) {
-            points.Insert(i, new Vector3(x, EvaluateFunction(x), 0));
-            x += deltaX;
-        }
-    }
-
     public void SetFunction(string _expression) {
-        expression = new Expression(_expression, EvaluateOptions.IgnoreCase);
+        equation = new FunctionEvaluator(_expression);
         positionX = 0f;
         yTranslation = 0f;
     }
 
-    private float EvaluateFunction(float x) {
-        expression.Parameters["x"] = x;
-        float y = float.Parse(expression.Evaluate().ToString());
-        Debug.Log("(" + x + "," + y + ")");
-        return y;
-    }
 
     public Vector3 GetNextPosition() {
-        float y = EvaluateFunction(positionX);
+        float y = equation.Evaluate(positionX);
         if (Mathf.Approximately(positionX, 0f) && !Mathf.Approximately(y, 0f)){
             yTranslation = -y;
         }
@@ -63,6 +41,7 @@ public class PathGrapher   {
             y = 0;
         }
         Vector3 nextPos = new Vector3(positionX, y + yTranslation, 0);
+        points.Add(nextPos);
         positionX += deltaX;
         return nextPos;
     }
